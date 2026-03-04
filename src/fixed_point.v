@@ -1,15 +1,17 @@
 // src/fixed_point.v
 `timescale 1ns/1ps
+`ifndef FIXED_POINT_V
+`define FIXED_POINT_V
 
 module fixed_mul_q15 (
-    input  signed [15:0] a,   // Q1.15
-    input  signed [15:0] b,   // Q1.15
-    output signed [31:0] product_q15 // Q1.15 in 32-bit signed (after shift)
+    input  signed [15:0] a,   // Q5.11
+    input  signed [15:0] b,   // Q5.11
+    output signed [31:0] product_q15 // Q5.11 in 32-bit signed (after shift)
 );
-    // multiply => 32-bit signed product in Q2.30 (effectively)
+    // multiply => 32-bit signed product in Q10.22 (effectively)
     wire signed [31:0] mult = a * b; // full product
-    // shift right by 15 to get back to Q1.15. Keep 32-bit signed result to avoid overflow
-    assign product_q15 = mult >>> 15;
+    // shift right by 11 to get back to Q5.11. Keep 32-bit signed result to avoid overflow
+    assign product_q15 = mult >>> 11;
 endmodule
 
 // saturating adder (simple version) for 32-bit signed
@@ -23,3 +25,4 @@ module sat_add32 (
                  (tmp < -32'sh80000000) ? -32'sh80000000 :
                  tmp[31:0];
 endmodule
+`endif // FIXED_POINT_V

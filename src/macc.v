@@ -1,5 +1,7 @@
 // src/macc.v
 `timescale 1ns/1ps
+`ifndef MACC_V
+`define MACC_V
 `include "fixed_point.v"
 
 module simple_2in_macc_q15(
@@ -19,4 +21,4 @@ module simple_2in_macc_q15(
     assign sum01 = p0 + p1;
     // bias is Q1.15 (16-bit) -> extend to 32-bit before add
     assign acc_out = sum01 + {{16{bias[15]}}, bias};
-endmodule
+endmodule`endif // MACC_V

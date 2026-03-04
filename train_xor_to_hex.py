@@ -2,7 +2,7 @@
 import numpy as np
 from pathlib import Path
 
-np.random.seed(42)
+np.random.seed(23)
 
 # XOR dataset
 X = np.array([[0,0],[0,1],[1,0],[1,1]], dtype=float)
@@ -20,14 +20,13 @@ W2 = np.random.randn(hid_dim, out_dim) * 1.0
 b2 = np.zeros((1, out_dim))
 
 def sigmoid(x): return 1.0/(1.0+np.exp(-x))
-def tanh(x): return np.tanh(x)
 
 lr = 0.1
-epochs = 10000
+epochs = 50000
 
 for epoch in range(epochs):
     z1 = X.dot(W1) + b1
-    a1 = tanh(z1)
+    a1 = sigmoid(z1)
     z2 = a1.dot(W2) + b2
     a2 = sigmoid(z2)
     loss = np.mean((a2 - y)**2)
@@ -36,7 +35,7 @@ for epoch in range(epochs):
     dW2 = a1.T.dot(dz2)
     db2 = np.sum(dz2, axis=0, keepdims=True)
     da1 = dz2.dot(W2.T)
-    dz1 = da1 * (1 - a1**2)
+    dz1 = da1 * (a1*(1-a1))
     dW1 = X.T.dot(dz1)
     db1 = np.sum(dz1, axis=0, keepdims=True)
 
@@ -45,10 +44,10 @@ for epoch in range(epochs):
     W1 -= lr * dW1
     b1 -= lr * db1
 
-# Q1.15 fixed-point conversion
-scale = 2**15
+# Q5.11 fixed-point conversion  (range -16.0 to +15.9995, resolution ~0.000488)
+scale = 2**11
 def to_q15(x):
-    x_clipped = np.clip(x, -1.0, 0.999969482421875)
+    x_clipped = np.clip(x, -16.0, 15.9995117)
     intval = np.round(x_clipped * scale).astype(np.int32)
     intval16 = (intval & 0xFFFF).astype(np.uint16)
     return intval16
@@ -74,7 +73,7 @@ write_hex(B1_q, 'B1.hex')
 write_hex(W2_q, 'W2.hex')
 write_hex(B2_q, 'B2.hex')
 
-# sigmoid LUT (256 entries) mapping inputs [-8,8] -> sigmoid(x) in Q1.15
+# sigmoid LUT (256 entries) mapping inputs [-8,8] -> sigmoid(x) in Q5.11
 lut_size = 256
 x_lut = np.linspace(-8, 8, lut_size)
 sig_lut = sigmoid(x_lut)
